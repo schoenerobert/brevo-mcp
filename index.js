@@ -36,6 +36,10 @@ const TOOLS = [
   { name: 'send_campaign_now', description: 'Send an email campaign immediately.', inputSchema: { type: 'object', properties: { campaignId: { type: 'number' } }, required: ['campaignId'] } },
   { name: 'get_senders', description: 'Get all verified senders.', inputSchema: { type: 'object', properties: {}, required: [] } },
   { name: 'get_templates', description: 'Get all email templates.', inputSchema: { type: 'object', properties: {}, required: [] } },
+  { name: 'create_list', description: 'Create a new contact list in Brevo.', inputSchema: { type: 'object', properties: { name: { type: 'string', description: 'List name' }, folderId: { type: 'number', description: 'Folder ID (default: 1)' } }, required: ['name'] } },
+  { name: 'delete_list', description: 'Delete a contact list by ID.', inputSchema: { type: 'object', properties: { listId: { type: 'number' } }, required: ['listId'] } },
+  { name: 'add_contacts_to_list', description: 'Add contacts to a list by email addresses.', inputSchema: { type: 'object', properties: { listId: { type: 'number' }, emails: { type: 'array', items: { type: 'string' } } }, required: ['listId', 'emails'] } },
+  { name: 'remove_contacts_from_list', description: 'Remove contacts from a list by email addresses.', inputSchema: { type: 'object', properties: { listId: { type: 'number' }, emails: { type: 'array', items: { type: 'string' } } }, required: ['listId', 'emails'] } },
 ];
 
 async function executeTool(name, args) {
@@ -72,6 +76,10 @@ async function executeTool(name, args) {
     case 'send_campaign_now': return brevo('POST', `/emailCampaigns/${args.campaignId}/sendNow`);
     case 'get_senders': return brevo('GET', '/senders');
     case 'get_templates': return brevo('GET', '/smtp/templates?limit=50');
+    case 'create_list': return brevo('POST', '/contacts/lists', { name: args.name, folderId: args.folderId || 1 });
+    case 'delete_list': return brevo('DELETE', `/contacts/lists/${args.listId}`);
+    case 'add_contacts_to_list': return brevo('POST', `/contacts/lists/${args.listId}/contacts/add`, { emails: args.emails });
+    case 'remove_contacts_from_list': return brevo('POST', `/contacts/lists/${args.listId}/contacts/remove`, { emails: args.emails });
     default: throw new Error(`Unknown tool: ${name}`);
   }
 }
